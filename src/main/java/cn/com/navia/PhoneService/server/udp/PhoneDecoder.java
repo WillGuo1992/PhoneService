@@ -65,7 +65,7 @@ public class PhoneDecoder extends MessageToMessageDecoder<DatagramPacket> {
 		seq = -1; // Return sequence -1 to the sender if fail to read packet.
 
 		try {
-//			debugMsg(buf.copy());
+			debugMsg(buf.copy());
 
 			proto = buf.readByte();
 			if (proto != PROTO_HEAD){
