@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/task
+        http://www.springframework.org/schema/task/spring-task.xsd">
+	
+	<context:annotation-config />
+	<context:component-scan base-package="cn.com.navia.PhoneService" />
+
+
+	<!--  <import resource="classpath*:spring-scheduler.xml" />  -->
+	<task:executor id="sprExecutor" queue-capacity="0" keep-alive="60" />
+	<task:scheduler id="sprScheduler" pool-size="10" />
+	<task:annotation-driven executor="sprExecutor" scheduler="sprScheduler" />
+	<bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" />
+
+
+
+	<!--  <import resource="classpath*:spring-analytics-ds.xml" />  -->
+	<bean id="analyseJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource">
+			<ref bean="analyse_ds" />
+		</property>
+	</bean>
+
+	<!--  <import resource="classpath*:spring-wifi-ds.xml" />  -->
+	<bean id="wifiJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource">
+			<ref bean="wifi_ds" />
+		</property>
+	</bean>
+
+	<!-- analyse_ds -->
+	<bean id="analyse_ds" class="org.logicalcobwebs.proxool.ProxoolDataSource" primary="true">
+		<property name="driver">
+			<value>com.mysql.jdbc.Driver</value>
+		</property>
+		<property name="driverUrl">
+			<value>jdbc:mysql://tanzhidata/navia_analytics?useUnicode=true&amp;characterEncoding=utf8&amp;autoreconnect=true&amp;connectTimeout=300000&amp;socketTimeout=300000
+			</value>
+		</property>
+		<property name="user" value="dev" />
+		<property name="password" value="naviamysqldev" />
+		<property name="alias" value="proxool_analyse" />
+		<property name="prototypeCount" value="1" />
+		<property name="maximumConnectionCount" value="50" />
+		<property name="minimumConnectionCount" value="2" />
+		<property name="simultaneousBuildThrottle" value="50" />
+		<property name="houseKeepingTestSql" value="select CURRENT_DATE" />
+		<property name="verbose" value="true" />
+		<property name="maximumActiveTime" value="900000" />
+	</bean>
+
+	<bean id="wifi_ds" class="org.logicalcobwebs.proxool.ProxoolDataSource">
+		<property name="driver">
+			<value>com.mysql.jdbc.Driver</value>
+		</property>
+		<property name="driverUrl">
+			<value>jdbc:mysql://tanzhidata/wifi?useUnicode=true&amp;characterEncoding=utf8&amp;autoreconnect=true&amp;connectTimeout=300000&amp;socketTimeout=300000
+			</value>
+		</property>
+		<property name="user" value="dev" />
+		<property name="password" value="naviamysqldev" />
+		<property name="alias" value="proxool_wifi" />
+		<property name="prototypeCount" value="0" />
+		<property name="maximumConnectionCount" value="50" />
+		<property name="minimumConnectionCount" value="2" />
+		<property name="simultaneousBuildThrottle" value="50" />
+		<property name="houseKeepingTestSql" value="select CURRENT_DATE" />
+		<property name="maximumActiveTime" value="900000" />
+	</bean>
+
+
+	<!-- phone_ds -->
+	<bean id="phone_ds" class="org.logicalcobwebs.proxool.ProxoolDataSource">
+		<property name="driver">
+			<value>com.mysql.jdbc.Driver</value>
+		</property>
+		<property name="driverUrl">
+			<value>jdbc:mysql://${mysql.server.host}/wifi_location?useUnicode=true&amp;characterEncoding=utf8&amp;autoreconnect=true&amp;connectTimeout=300000&amp;socketTimeout=300000
+			</value>
+		</property>
+		<property name="user" value="${mysql.server.user}" />
+		<property name="password" value="${mysql.server.password}" />
+		<property name="alias" value="proxool_phone" />
+		<property name="prototypeCount" value="0" />
+		<property name="maximumConnectionCount" value="50" />
+		<property name="minimumConnectionCount" value="2" />
+		<property name="simultaneousBuildThrottle" value="50" />
+		<property name="houseKeepingTestSql" value="select CURRENT_DATE" />
+		<property name="maximumActiveTime" value="900000" />
+	</bean>
+
+	<bean id="phoneJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource">
+			<ref bean="phone_ds" />
+		</property>
+	</bean>
+
+
+	<!-- phoneJmsTemplate -->
+	<bean id="phoneConnectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
+    	<property name="targetConnectionFactory">
+			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
+    			<property name="brokerURL" value="${active.mq.url}" />
+    			<property name="userName" value="${active.mq.user}" />
+    			<property name="password" value="${active.mq.password}" />
+    			<property name="useAsyncSend" value="true" />
+			</bean>
+    	</property>
+    	<property name="sessionCacheSize" value="10" />
+    	<property name="reconnectOnException" value="true" />
+	</bean>
+
+	<bean id="phoneDestination" class="org.apache.activemq.command.ActiveMQTopic">
+    	<constructor-arg value="${active.mq.topic}" />
+	</bean>
+
+	<bean id="phoneJmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+    	<property name="connectionFactory" ref="phoneConnectionFactory"/>
+    	<property name="messageConverter">
+    		<bean class="org.springframework.jms.support.converter.MappingJackson2MessageConverter">
+    			<property name="targetType" value="TEXT" />
+    		</bean>
+    	</property>
+    	<property name="defaultDestination" ref="phoneDestination"/>
+    	<property name="pubSubDomain" value="true" />
+    	<property name="explicitQosEnabled" value="true" />
+    	<property name="deliveryPersistent" value="false" />
+	</bean>
+
+
+</beans>
