@@ -21,7 +21,7 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 public class PhoneDecoder extends MessageToMessageDecoder<DatagramPacket> {
 
 	private byte PROTO_HEAD;
-	private String PROTO_PHONE;
+	private String PROTO_PHONE = null;
 
 	private Logger log = LoggerFactory.getLogger(this.getClass());
 	private StringBuffer mac = new StringBuffer(17);
@@ -29,7 +29,7 @@ public class PhoneDecoder extends MessageToMessageDecoder<DatagramPacket> {
 	public PhoneDecoder(ApplicationContext appCtx) {
 		try{
 			PROTO_HEAD = Byte.parseByte(appCtx.getEnvironment().getProperty("phone.udp.proto.head"));
-			PROTO_PHONE = appCtx.getEnvironment().getProperty("phone.udp.proto.identifier");
+			PROTO_PHONE = appCtx.getEnvironment().getProperty("phone.udp.proto.phone");
 		}
 		catch (NumberFormatException e){
 			log.error("PROTO_HEAD parseByte error: {}", e.getMessage());
@@ -50,12 +50,13 @@ public class PhoneDecoder extends MessageToMessageDecoder<DatagramPacket> {
 		UdpServIn phoneUdpItem = null;
 		UdpRecvAP[] wifis = null;
 		PhoneAcc acc = null;
+		Float v = null;
 		Short ori = null;
 		boolean retCode = false;
 		String idFV = null;
 		String phoneMac = null;
-		String identifier, bssid, ssid;
-		byte proto, version, apNum, freq, ssidLen;
+		String protoPhone, bssid, ssid;
+		byte protoHead, version, apNum, freq, ssidLen;
 		long seq, scantime, sendtime;
 		short channel, rssi;
 		float x, y, z;
@@ -65,74 +66,67 @@ public class PhoneDecoder extends MessageToMessageDecoder<DatagramPacket> {
 		seq = -1; // Return sequence -1 to the sender if fail to read packet.
 
 		try {
-			debugMsg(buf.copy());
+//			debugMsg(buf.copy());
 
-			proto = buf.readByte();
-			if (proto != PROTO_HEAD){
-				log.error("PhoneUDP Decoder PROTO_HEAD error: PROTO_HEAD={}", proto);
+			protoHead = buf.readByte();
+			if (protoHead != PROTO_HEAD){
+				log.error("PhoneUDP Decoder PROTO_HEAD error: PROTO_HEAD={}", protoHead);
 				return;
 			}
 
 			version = buf.readByte();
-			if (version < 0){
-				buf = buf.order(ByteOrder.LITTLE_ENDIAN);
-				buf.readBytes(fourBytes);
-				identifier = new String(fourBytes);
-				if (identifier.compareTo(PROTO_PHONE) != 0){
-					log.error("PhoneUDP Decoder PROTO_PHONE error: PROTO_PHONE={}", identifier);
-					return;
-				}
-				log.info("seq: {}", buf.readLong());
-				byte[] thirtySixBytes = new byte[36];
-				buf.readBytes(thirtySixBytes);
-				log.info("idFV: {}", new String(thirtySixBytes));
-				log.info("v: {}", buf.readFloat());
-				log.info("ori: {}", buf.readInt());
-				log.info("time: {}", buf.readLong());
-				return;
-			}
-			
-			
+
 			buf.readBytes(fourBytes);
-			identifier = new String(fourBytes);
-			if (identifier.compareTo(PROTO_PHONE) != 0){
-				log.error("PhoneUDP Decoder PROTO_PHONE error: PROTO_PHONE={}", identifier);
+			protoPhone = new String(fourBytes);
+			if (protoPhone.compareTo(PROTO_PHONE) != 0){
+				log.error("PhoneUDP Decoder PROTO_PHONE error: PROTO_PHONE={}", protoPhone);
 				return;
 			}
+			
+			if (version < 0){								//iPhone
+				buf = buf.order(ByteOrder.LITTLE_ENDIAN);	//LITTLE_ENDIAN
+				seq = buf.readLong();
+				byte[] idfvBytes = new byte[36];
+				buf.readBytes(idfvBytes);
+				idFV = new String(idfvBytes);
+				v = new Float(buf.readFloat());
+				ori = new Short((short)buf.readInt());
+				sendtime = buf.readLong();
+			}
+			else{											//Android
+				seq = buf.readLong();
+				buf.readBytes(sixBytes);
+				phoneMac = macStr(sixBytes);
+				apNum = buf.readByte();
+				if (apNum > 0){
+					wifis = new UdpRecvAP[apNum];
+					for(byte i=0; i < apNum; i++){
+						scantime = buf.readLong();
+						buf.readBytes(sixBytes);
+						bssid = macStr(sixBytes);
+						channel = buf.readUnsignedByte();
+						freq = buf.readByte();
+						rssi = buf.readShort();
+						ssidLen = buf.readByte();
+						ssidBytes = new byte[ssidLen];
+						buf.readBytes(ssidBytes);
+						ssid = new String(ssidBytes);
+						wifis[i] = new UdpRecvAP(ssid, bssid, channel, freq, rssi, scantime);
+					}				
+				}
+				if (buf.readByte() == 1){
+					x = buf.readFloat();
+					y = buf.readFloat();
+					z = buf.readFloat();
+					acc = new PhoneAcc(x, y ,z);
+				}
+				if (buf.readByte() == 1)
+					ori = new Short(buf.readShort());
 
-			seq = buf.readLong();
-			buf.readBytes(sixBytes);
-			phoneMac = macStr(sixBytes);
-			apNum = buf.readByte();
-			if (apNum > 0){
-				wifis = new UdpRecvAP[apNum];
-				for(byte i=0; i < apNum; i++){
-					scantime = buf.readLong();
-					buf.readBytes(sixBytes);
-					bssid = macStr(sixBytes);
-					channel = buf.readUnsignedByte();
-					freq = buf.readByte();
-					rssi = buf.readShort();
-					ssidLen = buf.readByte();
-					ssidBytes = new byte[ssidLen];
-					buf.readBytes(ssidBytes);
-					ssid = new String(ssidBytes);
-					wifis[i] = new UdpRecvAP(ssid, bssid, channel, freq, rssi, scantime);
-				}				
+				sendtime = buf.readLong();				
 			}
 
-			if (buf.readByte() == 1){
-				x = buf.readFloat();
-				y = buf.readFloat();
-				z = buf.readFloat();
-				acc = new PhoneAcc(x, y ,z);
-			}
-
-			if (buf.readByte() == 1)
-				ori = new Short(buf.readShort());
-
-			sendtime = buf.readLong();
-			phoneUdpItem = new UdpServIn(idFV, phoneMac, wifis, acc, ori, sendtime);
+			phoneUdpItem = new UdpServIn(idFV, phoneMac, wifis, acc, v, ori, sendtime);
 			retCode = true;
 		}
 		catch (Exception e){

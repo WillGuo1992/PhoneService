@@ -23,7 +23,7 @@
 			<fileNamePattern>${user.dir}/logs/info.%d{yyyy-MM-dd}.log
 			</fileNamePattern>
 			<!-- keep 30 days' worth of history -->
-			<maxHistory>5</maxHistory>
+			<maxHistory>30</maxHistory>
 		</rollingPolicy>
 
 		<encoder>
@@ -44,7 +44,7 @@
 			<fileNamePattern>${user.dir}/logs/error.%d{yyyy-MM-dd}.log
 			</fileNamePattern>
 			<!-- keep 30 days' worth of history -->
-			<maxHistory>5</maxHistory>
+			<maxHistory>30</maxHistory>
 		</rollingPolicy>
 
 		<encoder>
