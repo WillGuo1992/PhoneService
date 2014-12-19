@@ -2,7 +2,6 @@ package cn.com.navia.PhoneService.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
@@ -15,13 +14,12 @@ import cn.com.navia.PhoneService.bean.UserLogInfo;
 
 @Repository
 public class UserDao extends PhoneDao {
-	private static String GET_USER_BY_NAME = "select * from user where name = ?";
-	private static String INSERT_NEW_USER = "insert into user (email, name, password, device_mac, state, isregisted) values (?, ?, ?, ?, ?, ?)";
-	private static String IS_NAME_EXIST = "select count(*) from user where name = ?";
-	private static String UPDATE_MAC_BY_UID = "update user set device_mac = ? where uid = ?";
-	private static String SAVE_USER_LOGINFO = "insert into userlog(uid, name, device_mac, login_time) values(?, ?, ?, ?)";
-	private static String GET_LAST_LOGIN_UID_BY_MAC = "select * from userlog where device_mac = ? order by login_time desc limit 1"; 
-	private static SimpleDateFormat simpleDF = new SimpleDateFormat("yyyyMMddHHmmss");
+	private static String GET_USER_BY_NAME = "select * from user where name=?";
+	private static String INSERT_NEW_USER = "insert into user (email, name, password, device_mac, state, isreg) values (?, ?, ?, ?, ?, ?)";
+	private static String IS_NAME_EXIST = "select count(*) from user where name=?";
+	private static String UPDATE_MAC_BY_UID = "update user set device_mac=? where uid=?";
+	private static String SAVE_USER_LOGINFO = "insert into userlog(uid, name, device_mac, login_time) values(?, ?, ?, now())";
+	private static String GET_LAST_LOGIN_UID_BY_MAC = "select uid from userlog where device_mac=? order by login_time desc limit 1"; 
 
 	private static final class phoneUserMapper implements RowMapper<PhoneUser> {
 		@Override
@@ -32,7 +30,7 @@ public class UserDao extends PhoneDao {
 			String password = rs.getString("password");
 			String device_mac = rs.getString("device_mac");
 			byte state = rs.getByte("state");
-			boolean reg = rs.getBoolean("isregisted");
+			boolean reg = rs.getBoolean("isreg");
 			return new PhoneUser(uid, email, name, password, device_mac, state, reg);
 		}
 	}
@@ -40,7 +38,6 @@ public class UserDao extends PhoneDao {
 	public PhoneUser getUserByName(String name) throws Exception {
 		List<PhoneUser> pus = phoneJdbcTemplate.query(GET_USER_BY_NAME, new Object[] { name }, new phoneUserMapper());
 		return (pus.isEmpty()) ? null : pus.get(0);
-
 	}
 
 	public boolean insertNewUser(PhoneUser pu) throws Exception {
@@ -61,7 +58,7 @@ public class UserDao extends PhoneDao {
 
 	public boolean saveUserLogInfo(UserLogInfo ULinfo) throws Exception {
 		int rowsAffected = phoneJdbcTemplate.update(SAVE_USER_LOGINFO, ULinfo.getUid(), ULinfo.getName(),
-				ULinfo.getDevice_mac(), simpleDF.format(ULinfo.getLogin_time()));
+				ULinfo.getDevice_mac());
 		return (rowsAffected > 0) ? true : false;
 	}
 

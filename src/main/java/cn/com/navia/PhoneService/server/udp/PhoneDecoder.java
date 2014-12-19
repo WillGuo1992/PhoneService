@@ -130,8 +130,7 @@ public class PhoneDecoder extends MessageToMessageDecoder<DatagramPacket> {
 			retCode = true;
 		}
 		catch (Exception e){
-			e.printStackTrace();
-			log.error("PhoneUDP Decoder error:{}", e.getMessage());
+			log.error("PhoneUDP Decoder error: message: {}, StackTrace: {}", e.getMessage(), e.getStackTrace());
 		}
 		finally {
 			if (phoneUdpItem != null)
@@ -162,7 +161,7 @@ public class PhoneDecoder extends MessageToMessageDecoder<DatagramPacket> {
 		byte[] recvBytes = new byte[readLen];
 		bufCopy.readBytes(recvBytes);
 		String debugStr = HexUtil.bytes2hexStr(recvBytes);
-		log.info("PhoneUDP: readLength{}, {}", readLen, debugStr);
+		log.info("PhoneUDP: readLength:{}, {}", readLen, debugStr);
 	}
 
 }

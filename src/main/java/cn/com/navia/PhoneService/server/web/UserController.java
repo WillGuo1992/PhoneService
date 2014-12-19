@@ -1,7 +1,5 @@
 package cn.com.navia.PhoneService.server.web;
 
-import java.util.Date;
-
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -33,9 +31,9 @@ public class UserController {
 	private UserDao userDao;
 	@Resource
 	private RestClient restClient;
-	
+
 	private Logger log = LoggerFactory.getLogger(this.getClass());
-	
+
 	@RequestMapping(value = "/login", produces = MediaType.APPLICATION_JSON_VALUE + "; charset=UTF-8")
 	public RespBody userLogin(HttpServletRequest request, @RequestParam(value = "username") String username,
 			@RequestParam(value = "password") String password, @RequestParam(value = "did") String phoneMac){
@@ -55,7 +53,7 @@ public class UserController {
 					if (!userDao.updateMacByUid(uid, device_mac))
 						updateMac = "MAC地址更新至数据库失败！";
 				}
-				if (!userDao.saveUserLogInfo(new UserLogInfo(uid, username, device_mac, new Date())))
+				if (!userDao.saveUserLogInfo(new UserLogInfo(uid, username, device_mac, null)))
 					saveLogInfo = "保存用户登录信息失败！";
 				HttpSession session = request.getSession();
 				session.setAttribute("LoginSession", device_mac);
@@ -94,7 +92,7 @@ public class UserController {
 
 
 	@RequestMapping(value = "/registe", produces = MediaType.APPLICATION_JSON_VALUE + "; charset=UTF-8")
-	public RespBody userRegiste(HttpServletRequest request, @RequestParam(value = "username") String username,
+	public RespBody userRegister(HttpServletRequest request, @RequestParam(value = "username") String username,
 			@RequestParam(value = "password") String password, @RequestParam(value = "did") String phoneMac){
 		RespValue rv = null;
 		try{

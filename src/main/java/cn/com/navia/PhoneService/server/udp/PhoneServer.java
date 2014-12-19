@@ -11,10 +11,10 @@ import java.net.InetSocketAddress;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import cn.com.navia.module.BaseModule;
+import cn.com.navia.PhoneService.module.PhoneBaseModule;
 
 @Service
-public class PhoneServer extends BaseModule {
+public class PhoneServer extends PhoneBaseModule {
 	
 	@Value("${phone.udp.host}")
 	private String host;
@@ -47,7 +47,7 @@ public class PhoneServer extends BaseModule {
 				bootstrap.bind(new InetSocketAddress(host, port));
 			}
 
-			log.info("{} start listen to=>{}:{}", this.getClass().getSimpleName(), host, port);
+			log.info("Phone UDPServer start listen to=>{}:{}", host, port);
 
 		} catch (Exception e) {
 			throw new RuntimeException("UDPServer init error:", e);

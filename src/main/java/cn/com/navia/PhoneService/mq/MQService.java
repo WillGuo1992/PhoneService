@@ -32,7 +32,7 @@ public class MQService {
 		UdpServIn udpItem = null;
 		while (true) {
 			try {
-				udpItem = udpItemLBQueue.poll(100, TimeUnit.MILLISECONDS);
+				udpItem = udpItemLBQueue.poll(50, TimeUnit.MILLISECONDS);
 				if (udpItem == null)
 					break;
 
@@ -40,18 +40,17 @@ public class MQService {
 					@Override
 					public Message postProcessMessage(Message message) throws JMSException {
 						message.setLongProperty("stime", System.currentTimeMillis());
-						log.info("message: {}", message);
 						return message;
 					}
 				});
+				long phoneSendTime = udpItem.getSendTime();
+				log.info("Finish sending to MQ, phoneMac:{}, sendTime:{}, totally {} ms.", udpItem.getPhoneMac(), phoneSendTime, (System.currentTimeMillis() - phoneSendTime));
 			} 
 			catch (JmsException e) {
 				log.error("MQService pollAndSend JmsException: code: {}, message: {}", e.getErrorCode(), e.getMessage());
-				e.printStackTrace();
 			}
 			catch (Exception e) {
-				log.error("MQService pollAndSend error: {}", e.getMessage());
-				e.printStackTrace();
+				log.error("MQService pollAndSend error: message: {}, StackTrace: {}", e.getMessage(), e.getStackTrace());
 			}
 		}
 	}
@@ -63,8 +62,7 @@ public class MQService {
 				log.error("MQService offerAndCache failed! The LinkedBlockingQueue is full (1024 elements)!");;
 		}
 		catch (Exception e) {
-			log.error("MQService offerAndCache error: {}", e.getMessage());
-			e.printStackTrace();
+			log.error("MQService offerAndCache error: message: {}, StackTrace: {}", e.getMessage(), e.getStackTrace());
 		}
 		//log.info("MQService offerAndCache success!");
 	}

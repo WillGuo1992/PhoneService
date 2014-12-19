@@ -6,6 +6,7 @@ public class EntityMsg {
 	private int mapId;
 	private long t;
 	private int count;
+	private String org;
 
 	public EntityMsg() {
 		super();
@@ -49,6 +50,14 @@ public class EntityMsg {
 
 	public void setCount(int count) {
 		this.count = count;
+	}
+
+	public String getOrg() {
+		return org;
+	}
+
+	public void setOrg(String org) {
+		this.org = org;
 	}
 
 }

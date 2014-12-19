@@ -23,8 +23,9 @@ public class PhoneServerHandler extends ChannelInboundHandlerAdapter {
 		super.channelRead(ctx, msg);
 		if(msg instanceof UdpServIn){
 			UdpServIn phoneUdpItem = (UdpServIn) msg;
-			log.info("channelRead: apNum:{}, {}", phoneUdpItem.getWifis().length, phoneUdpItem);
-			mqService.offerAndCache(phoneUdpItem);
+			long phoneSendTime = phoneUdpItem.getSendTime();
+			log.info("channelRead: apNum:{}, phoneMac:{}, sendTime:{}, cost {} ms.", phoneUdpItem.getWifis().length, phoneUdpItem.getPhoneMac(), phoneSendTime, (System.currentTimeMillis() - phoneSendTime));
+//			mqService.offerAndCache(phoneUdpItem);
 		}
 		
 	}

@@ -2,8 +2,12 @@ package cn.com.navia.PhoneService.assist;
 
 import java.security.MessageDigest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ShaUtil {
 
+	private static Logger log = LoggerFactory.getLogger("ShaUtil");
 	private static MessageDigest shaMD;
 	
 	static {
@@ -11,7 +15,7 @@ public class ShaUtil {
 			shaMD = MessageDigest.getInstance("SHA", "SUN");
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			log.error("MessageDigest.getInstance error: {}, {}", e.getClass().getName(), e.getMessage());
 		}
 	}
 
