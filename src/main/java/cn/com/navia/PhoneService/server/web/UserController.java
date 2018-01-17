@@ -7,9 +7,11 @@ import javax.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 
 
 
@@ -29,8 +31,9 @@ public class UserController {
 
 	@Resource
 	private UserDao userDao;
-	@Resource
-	private RestClient restClient;
+
+//	@Resource
+//	private RestClient restClient;
 
 	private Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -63,7 +66,7 @@ public class UserController {
 		}
 		catch(Exception e){
 			log.error("userLogin error: {}", e.getMessage());
-			rv = new RespValue((short)-9, "服务抛出异常！");
+			rv = new RespValue((short)-9, "Exception异常！");
 		}
 		log.info("/login: username: {}, phoneMac: {}, {}", username, phoneMac.toUpperCase(), rv);
 		return new RespBody(rv);
@@ -84,7 +87,7 @@ public class UserController {
 		}
 		catch(Exception e){
 			log.error("userLogout error: {}", e.getMessage());
-			rv = new RespValue((short)-9, "服务抛出异常！");
+			rv = new RespValue((short)-9, "Exception异常！");
 		}
 		log.info("/logout: sessionMac: {}, {}", sessionMac, rv);
 		return new RespBody(rv);
@@ -116,7 +119,7 @@ public class UserController {
 		}
 		catch(Exception e){
 			log.error("userRegister error: {}", e.getMessage());
-			rv = new RespValue((short)-9, "服务抛出异常！");
+			rv = new RespValue((short)-9, "Exception异常！");
 		}
 		log.info("/registe: username: {}, phoneMac: {}, {}", username, phoneMac.toUpperCase(), rv);
 		return new RespBody(rv);
@@ -136,7 +139,7 @@ public class UserController {
 			else if (device_mac.compareTo(sessionMac) != 0)
 				rv = new RespValue((short)-3, "所请求MAC地址与登录时不符！");
 			else{
-				msg = restClient.getLocationByMac(sessionMac);
+				//msg = restClient.getLocationByMac(sessionMac);
 				if (msg == null)
 					rv = new RespValue((short)-1, "获取坐标失败！");
 				else
@@ -145,10 +148,17 @@ public class UserController {
 		}
 		catch(Exception e){
 			log.error("userLocation error: {}", e.getMessage());
-			rv = new RespValue((short)-9, "服务抛出异常！");
+			rv = new RespValue((short)-9, "Exception异常！");
 		}
 		log.info("/location: phoneMac: {}, {}", phoneMac.toUpperCase(), rv);
 		return new RespBody(rv, msg);
+	}
+
+	@ExceptionHandler(Exception.class)
+	public String handleException(HttpServletRequest req, Exception e) {
+		log.error("UserController Exception from {}, Message: {}", req.getRemoteAddr(), e.getMessage());
+
+		return null;
 	}
 
 }

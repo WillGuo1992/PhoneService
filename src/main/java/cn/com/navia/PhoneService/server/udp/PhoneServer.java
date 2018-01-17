@@ -16,11 +16,11 @@ import cn.com.navia.PhoneService.module.PhoneBaseModule;
 @Service
 public class PhoneServer extends PhoneBaseModule {
 	
-	@Value("${phone.udp.host}")
-	private String host;
-
-	@Value("${phone.udp.port}")
-	private int port;
+//	@Value("${phone.udp.host}")
+//	private String host;
+//
+//	@Value("${phone.udp.port}")
+//	private int port;
 
 	private EventLoopGroup boss = new NioEventLoopGroup();
 	private Bootstrap bootstrap;
@@ -33,21 +33,21 @@ public class PhoneServer extends PhoneBaseModule {
 			bootstrap = new Bootstrap();
 			bootstrap.group(boss);
 			bootstrap.channel(NioDatagramChannel.class);
-			bootstrap.handler(new ChannelInitializer<NioDatagramChannel>() {
-				@Override
-				public void initChannel(NioDatagramChannel ch) throws Exception {
-					ch.pipeline().addLast(PhoneDecoder.class.getSimpleName(), new PhoneDecoder(getApplicationContext()));
-					ch.pipeline().addLast(PhoneServerHandler.class.getSimpleName(), new PhoneServerHandler(getApplicationContext()));
-				}
-			});
+//			bootstrap.handler(new ChannelInitializer<NioDatagramChannel>() {
+//				@Override
+//				public void initChannel(NioDatagramChannel ch) throws Exception {
+//					ch.pipeline().addLast(PhoneDecoder.class.getSimpleName(), new PhoneDecoder(getApplicationContext()));
+//					ch.pipeline().addLast(PhoneServerHandler.class.getSimpleName(), new PhoneServerHandler(getApplicationContext()));
+//				}
+//			});
 
-			if (host == null || host == "") {
-				bootstrap.bind(new InetSocketAddress(port));
-			} else {
-				bootstrap.bind(new InetSocketAddress(host, port));
-			}
-
-			log.info("Phone UDPServer start listen to=>{}:{}", host, port);
+//			if (host == null || host == "") {
+//				bootstrap.bind(new InetSocketAddress(port));
+//			} else {
+//				bootstrap.bind(new InetSocketAddress(host, port));
+//			}
+//
+//			log.info("Phone UDPServer start listen to=>{}:{}", host, port);
 
 		} catch (Exception e) {
 			throw new RuntimeException("UDPServer init error:", e);

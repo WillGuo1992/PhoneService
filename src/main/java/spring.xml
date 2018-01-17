@@ -9,7 +9,7 @@
         http://www.springframework.org/schema/context/spring-context.xsd
         http://www.springframework.org/schema/task
         http://www.springframework.org/schema/task/spring-task.xsd">
-	
+	 
 	<context:annotation-config />
 	<context:component-scan base-package="cn.com.navia.PhoneService" />
 
@@ -20,34 +20,56 @@
 	<bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" />
 
 
-	<!-- phone_ds -->
-	<bean id="phone_ds" class="org.logicalcobwebs.proxool.ProxoolDataSource">
-		<property name="driver">
-			<value>com.mysql.jdbc.Driver</value>
+	<!-- mall_ds -->
+	<bean id="mallJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource">
+			<bean id="mall_ds" class="org.logicalcobwebs.proxool.ProxoolDataSource">
+				<property name="driver">
+					<value>com.mysql.jdbc.Driver</value>
+				</property>
+				<property name="driverUrl">
+					<value>jdbc:mysql://${mysql.server.host}/mall_ui?useUnicode=true&amp;characterEncoding=utf8&amp;autoreconnect=true&amp;connectTimeout=300000&amp;socketTimeout=300000</value>
+				</property>
+				<property name="user" value="${mysql.server.user}" />
+				<property name="password" value="${mysql.server.password}" />
+				<property name="alias" value="proxool_mall" />
+				<property name="prototypeCount" value="0" />
+				<property name="maximumConnectionCount" value="50" />
+				<property name="minimumConnectionCount" value="2" />
+				<property name="simultaneousBuildThrottle" value="50" />
+				<property name="houseKeepingTestSql" value="select CURRENT_DATE" />
+				<property name="maximumActiveTime" value="900000" />
+			</bean>
 		</property>
-		<property name="driverUrl">
-			<value>jdbc:mysql://${mysql.server.host}/phone_app?useUnicode=true&amp;characterEncoding=utf8&amp;autoreconnect=true&amp;connectTimeout=300000&amp;socketTimeout=300000
-			</value>
-		</property>
-		<property name="user" value="${mysql.server.user}" />
-		<property name="password" value="${mysql.server.password}" />
-		<property name="alias" value="proxool_phone" />
-		<property name="prototypeCount" value="0" />
-		<property name="maximumConnectionCount" value="50" />
-		<property name="minimumConnectionCount" value="2" />
-		<property name="simultaneousBuildThrottle" value="50" />
-		<property name="houseKeepingTestSql" value="select CURRENT_DATE" />
-		<property name="maximumActiveTime" value="900000" />
 	</bean>
 
+
+	<!-- phone_ds -->
 	<bean id="phoneJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
 		<property name="dataSource">
-			<ref bean="phone_ds" />
+			<bean id="phone_ds" class="org.logicalcobwebs.proxool.ProxoolDataSource">
+				<property name="driver">
+					<value>com.mysql.jdbc.Driver</value>
+				</property>
+				<property name="driverUrl">
+					<value>jdbc:mysql://${mysql.server.host}/phone_app?useUnicode=true&amp;characterEncoding=utf8&amp;autoreconnect=true&amp;connectTimeout=300000&amp;socketTimeout=300000</value>
+				</property>
+				<property name="user" value="${mysql.server.user}" />
+				<property name="password" value="${mysql.server.password}" />
+				<property name="alias" value="proxool_phone" />
+				<property name="prototypeCount" value="0" />
+				<property name="maximumConnectionCount" value="50" />
+				<property name="minimumConnectionCount" value="2" />
+				<property name="simultaneousBuildThrottle" value="50" />
+				<property name="houseKeepingTestSql" value="select CURRENT_DATE" />
+				<property name="maximumActiveTime" value="900000" />
+			</bean>
 		</property>
 	</bean>
 
 
 	<!-- phoneJmsTemplate -->
+<!--
 	<bean id="phoneConnectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
     	<property name="targetConnectionFactory">
 			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
@@ -66,16 +88,17 @@
 	</bean>
 
 	<bean id="phoneJmsTemplate" class="org.springframework.jms.core.JmsTemplate">
-    	<property name="connectionFactory" ref="phoneConnectionFactory"/>
+    	<property name="connectionFactory" ref="phoneConnectionFactory" />
     	<property name="messageConverter">
     		<bean class="org.springframework.jms.support.converter.MappingJackson2MessageConverter">
     			<property name="targetType" value="TEXT" />
     		</bean>
     	</property>
-    	<property name="defaultDestination" ref="phoneDestination"/>
+    	<property name="defaultDestination" ref="phoneDestination" />
     	<property name="pubSubDomain" value="true" />
     	<property name="explicitQosEnabled" value="true" />
     	<property name="deliveryPersistent" value="false" />
 	</bean>
+-->
 
 </beans>

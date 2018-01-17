@@ -11,7 +11,7 @@ import org.springframework.context.annotation.ImportResource;
 /**
  * App
  *
- */
+ */  
 
 
 @Configuration
@@ -21,25 +21,24 @@ import org.springframework.context.annotation.ImportResource;
 @ImportResource({ "classpath*:spring.xml" })
 public class App 
 {
-
+ 
 	protected final Logger log = LoggerFactory.getLogger(this.getClass());
-
+ 
     public static void main( String[] args )
     {
     	App app = new App();
     	app.start(args);
-    	app.log.info("{} started success", app.getClass().getSimpleName()  );
-      
+    	app.log.info("PhoneService {} startup successfully", app.getClass().getSimpleName()  );
     }
 
     private void start(String[] args) {
 		try {
 			SpringApplication app = new SpringApplication(this.getClass());
 			ConfigurableApplicationContext confCtx = app.run(args);
-			this.log.info("ConfigurableApplicationContext:{}", confCtx);
+			this.log.info("ConfigurableApplicationContext: {}", confCtx);
 			
 		} catch (Exception e) {
-			log.error("start", e);
+			log.error("PhoneService startup error: {}", e.getMessage());
 			System.exit(-1);
 		}
 	}

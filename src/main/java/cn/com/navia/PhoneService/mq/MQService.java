@@ -1,32 +1,20 @@
 package cn.com.navia.PhoneService.mq;
 
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.Resource;
-import javax.jms.JMSException;
-import javax.jms.Message;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jms.JmsException;
-import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.core.MessagePostProcessor;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-
-import cn.com.navia.PhoneService.bean.UdpServIn;
 
 
 @Service
 public class MQService {
 
-	@Resource(name = "phoneJmsTemplate")
-	private JmsTemplate phoneJmsTemplate;
+//	@Resource(name = "phoneJmsTemplate")
+//	private JmsTemplate phoneJmsTemplate;
 	
 	private Logger log = LoggerFactory.getLogger(this.getClass());
-	private LinkedBlockingQueue<UdpServIn> udpItemLBQueue = new LinkedBlockingQueue<UdpServIn>(1024);
+//	private LinkedBlockingQueue<UdpServIn> udpItemLBQueue = new LinkedBlockingQueue<UdpServIn>(1024);
 
+/*
 	@Async
 	public void pollAndSend() {
 		UdpServIn udpItem = null;
@@ -50,7 +38,7 @@ public class MQService {
 				log.error("MQService pollAndSend JmsException: code: {}, message: {}", e.getErrorCode(), e.getMessage());
 			}
 			catch (Exception e) {
-				log.error("MQService pollAndSend error: message: {}, StackTrace: {}", e.getMessage(), e.getStackTrace());
+				log.error("MQService pollAndSend error: Message: {}, StackTrace: {}", e.getMessage(), e.getStackTrace());
 			}
 		}
 	}
@@ -62,9 +50,9 @@ public class MQService {
 				log.error("MQService offerAndCache failed! The LinkedBlockingQueue is full (1024 elements)!");;
 		}
 		catch (Exception e) {
-			log.error("MQService offerAndCache error: message: {}, StackTrace: {}", e.getMessage(), e.getStackTrace());
+			log.error("MQService offerAndCache error: Message: {}, StackTrace: {}", e.getMessage(), e.getStackTrace());
 		}
 		//log.info("MQService offerAndCache success!");
 	}
-
+*/
 }

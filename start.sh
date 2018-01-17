@@ -16,14 +16,16 @@ LIBS=$PHONE_HOME/libs
 PHONE_MAIN_CLASS="cn.com.navia.PhoneService.App"
 
 #java
-JAVA_BIN=$(dirname `which java`)
-JAVA_EXEC=$JAVA_BIN/java
-JAVA_HOME=$(cd $JAVA_BIN/..; pwd)
+#JAVA_BIN=$(dirname `which java`)
+#JAVA_EXEC=$JAVA_BIN/java
+#JAVA_HOME=$(cd $JAVA_BIN/..; pwd)
+JAVA_HOME=/usr/share/jdk1.7.0_45
+JAVA_EXEC=$JAVA_HOME/bin/java
 
 
 echo -e "PHONE_HOME:\t $PHONE_HOME"
 echo -e "JAVA_HOME:\t $JAVA_HOME"
-echo -e "JAVA_BIN:\t $JAVA_EXEC"
+echo -e "JAVA_EXEC:\t $JAVA_EXEC"
 echo -e "JAVA_OPTS:\t $JAVA_OPTS"
 echo -e "MAIN_CLASS:\t $PHONE_MAIN_CLASS" 
 

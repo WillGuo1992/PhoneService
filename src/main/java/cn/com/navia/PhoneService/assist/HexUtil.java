@@ -43,5 +43,16 @@ public class HexUtil {
 			hexString.append(" - " + realStr.toString());
 		return hexString.toString();
 	}
+	
+	public static String byteNeg2LowerHex(byte inByte){
+		StringBuffer hexStr = new StringBuffer(2);
+		inByte = (byte) ~inByte;
+		int tempInt = inByte & 0xff;
+		if (tempInt < 16)
+			hexStr.append("0");
+		hexStr.append(Integer.toHexString(tempInt).toLowerCase());
+
+		return hexStr.toString();
+	}
 
 }

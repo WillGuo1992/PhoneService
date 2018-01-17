@@ -16,7 +16,7 @@ import cn.com.navia.PhoneService.bean.UserLogInfo;
 public class UserDao extends PhoneDao {
 	private static String GET_USER_BY_NAME = "select * from user where name=?";
 	private static String INSERT_NEW_USER = "insert into user (email, name, password, device_mac, state, isreg) values (?, ?, ?, ?, ?, ?)";
-	private static String IS_NAME_EXIST = "select count(*) from user where name=?";
+	private static String IS_NAME_EXIST = "select count(1) from user where name=?";
 	private static String UPDATE_MAC_BY_UID = "update user set device_mac=? where uid=?";
 	private static String SAVE_USER_LOGINFO = "insert into userlog(uid, name, device_mac, login_time) values(?, ?, ?, now())";
 	private static String GET_LAST_LOGIN_UID_BY_MAC = "select uid from userlog where device_mac=? order by login_time desc limit 1"; 
@@ -68,6 +68,7 @@ public class UserDao extends PhoneDao {
 			uid = phoneJdbcTemplate.queryForObject(GET_LAST_LOGIN_UID_BY_MAC, Integer.class, device_mac);
 		}
 		catch (IncorrectResultSizeDataAccessException irsdae){
+			log.error("getLastLoginUidByMac error: IncorrectResultSizeDataAccessException ActualSize: {}", irsdae.getActualSize());
 			return 0;
 		}
 		return (uid == null) ? 0 : uid.intValue();

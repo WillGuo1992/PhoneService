@@ -1,8 +1,12 @@
 package cn.com.navia.PhoneService.server.web;
 
 import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+
+import javax.annotation.PostConstruct;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -21,29 +25,29 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
+import cn.com.navia.PhoneService.bean.BeanBikeRetMsg;
+import cn.com.navia.PhoneService.bean.BeanCoachRetMsg;
 import cn.com.navia.PhoneService.bean.BeanRetMsg;
-import cn.com.navia.PhoneService.bean.EntityBody;
-import cn.com.navia.PhoneService.bean.EntityMsg;
 
 
-
+ 
 @Service
 public class RestClient {
 
-	private Logger log;
+	private Logger log = LoggerFactory.getLogger(this.getClass());
 	private PoolingHttpClientConnectionManager poolingHCCM;
 	private CloseableHttpClient httpClient;
 	private HttpComponentsClientHttpRequestFactory httpFactory;
 	private RestTemplate restTemplate;
 	
-	@Value("${phone.location.host}")
-	private String host;
-
-	@Value("${phone.location.port}")
-	private String port;
-	
-	@Value("${phone.location.path}")
-	private String path;
+//	@Value("${phone.location.host}")
+//	private String host;
+//
+//	@Value("${phone.location.port}")
+//	private String port;
+//	
+//	@Value("${phone.location.path}")
+//	private String path;
 
 	@Value("${trans.request.baseurl}")
 	private String transBaseurl;
@@ -51,10 +55,8 @@ public class RestClient {
 	@Value("${trans.ask.password}")
 	private String askPassword;
 
-	public RestClient() {
-		super();
-		log = LoggerFactory.getLogger(this.getClass());
-
+	@PostConstruct
+	private void init() {
 		try{
 			poolingHCCM = new PoolingHttpClientConnectionManager();  
 			httpClient = HttpClients.createMinimal(poolingHCCM);
@@ -87,35 +89,35 @@ public class RestClient {
 			log.info("RestClient init success!");
 		}
 		catch (Exception e){
-			log.error("RestClient init error: message: {}, StackTrace: {}", e.getMessage(), e.getStackTrace());
+			log.error("RestClient init error: Message: {}, StackTrace: {}", e.getMessage(), e.getStackTrace());
 		}
 	}
 
-	public EntityMsg getLocationByMac(String device_mac){
-		String url = "http://" + host + ":" + port + path + "/" + device_mac;
-		log.info("getLocationByMac URL: {}", url);
-		ResponseEntity<EntityBody> entity;
-		EntityMsg entityMsg = null;
-		EntityBody body;
-		try{
-			entity = restTemplate.getForEntity(url, EntityBody.class);
-			if ((entity.getStatusCode().value() == 200) && (entity.hasBody())){
-				body = entity.getBody();
-				if (body.getCode() == 0)
-					entityMsg = body.getMsg();
-				else
-					log.error("getLocationByMac error: action: {}, msg: {}", body.getAction(), body.getMsg());
-			}
-		}
-		catch (Exception e){
-			if (e instanceof HttpClientErrorException){
-				HttpClientErrorException hcee = (HttpClientErrorException) e;
-				log.error("getLocationByMac: HttpClientErrorException: {}" + hcee.getResponseBodyAsString());
-			}
-			log.error("getLocationByMac error: {}", e.getMessage());
-	    }
-		return entityMsg;
-	}
+//	public EntityMsg getLocationByMac(String device_mac){
+//		String url = "http://" + host + ":" + port + path + "/" + device_mac;
+//		log.info("getLocationByMac URL: {}", url);
+//		ResponseEntity<EntityBody> entity;
+//		EntityMsg entityMsg = null;
+//		EntityBody body;
+//		try{
+//			entity = restTemplate.getForEntity(url, EntityBody.class);
+//			if ((entity.getStatusCode().value() == 200) && (entity.hasBody())){
+//				body = entity.getBody();
+//				if (body.getCode() == 0)
+//					entityMsg = body.getMsg();
+//				else
+//					log.error("getLocationByMac error: action: {}, msg: {}", body.getAction(), body.getMsg());
+//			}
+//		}
+//		catch (Exception e){
+//			if (e instanceof HttpClientErrorException){
+//				HttpClientErrorException hcee = (HttpClientErrorException) e;
+//				log.error("getLocationByMac: HttpClientErrorException: {}" + hcee.getResponseBodyAsString());
+//			}
+//			log.error("getLocationByMac error: {}", e.getMessage());
+//	    }
+//		return entityMsg;
+//	}
 
 
 	@Async
@@ -142,6 +144,12 @@ public class RestClient {
 			else
 				log.error("requestHeartbeatAction error: {}, {}", e.getClass().getName(), e.getMessage());
 	    }
+		
+		getBikeRealtimeData("01010047");
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");//设置日期格式
+		System.out.println();
+		String devDate = df.format(new Date());
+		getCoachRealtimeData(devDate,"六里桥","张家口");
 	}
 
 	public BeanRetMsg getBusRealtimeData(String route, byte updown, byte seq){
@@ -193,7 +201,71 @@ public class RestClient {
 		return retMsg;
 	}
 
+	public BeanBikeRetMsg getBikeRealtimeData(String statCode){
+		String funcStr = "LoadBikeRealDataJson";
+		String reqUrl = transBaseurl + funcStr +"?ask=" + askPassword + "&statcode=" + statCode;
+		BeanBikeRetMsg retMsg = null;
+		ResponseEntity<BeanBikeRetMsg> entity;
+		try{
+			entity = restTemplate.getForEntity(reqUrl, BeanBikeRetMsg.class);
+			if ((entity.getStatusCode().value() == 200) && (entity.hasBody()))
+				retMsg = entity.getBody();
+		}
+		catch (Exception e){
+			if (e instanceof HttpClientErrorException){
+				HttpClientErrorException hcee = (HttpClientErrorException) e;
+				log.error("getBikeRealtimeData: HttpClientErrorException: {}" + hcee.getResponseBodyAsString());
+			}
+			if (e instanceof ResourceAccessException){
+				try{
+					entity = restTemplate.getForEntity(reqUrl, BeanBikeRetMsg.class);
+					if ((entity.getStatusCode().value() == 200) && (entity.hasBody()))
+						retMsg = entity.getBody();
+					log.info("getBikeRealtimeData try again!");
+				}
+				catch (Exception retryException){
+					log.error("getBikeRealtimeData retry error: {}, {}", e.getClass().getName(), e.getMessage());
+				}
+			}
+			else
+				log.error("getBikeRealtimeData error: {}, {}", e.getClass().getName(), e.getMessage());
+	    }
 
+		return retMsg;
+	}
 
+	public BeanCoachRetMsg getCoachRealtimeData(String drvDate, String startStat, String endStat){
+		String funcStr = "LoadLwspSchdDataJson";
+		String reqUrl = transBaseurl + funcStr +"?ask=" + askPassword +
+				"&drvdate=" + drvDate + "&startstat=" + startStat + "&endstat=" + endStat;
+		BeanCoachRetMsg retMsg = null;
+		ResponseEntity<BeanCoachRetMsg> entity;
+		try{
+			entity = restTemplate.getForEntity(reqUrl, BeanCoachRetMsg.class);
+			if ((entity.getStatusCode().value() == 200) && (entity.hasBody()))
+				retMsg = entity.getBody();
+		}
+		catch (Exception e){
+			if (e instanceof HttpClientErrorException){
+				HttpClientErrorException hcee = (HttpClientErrorException) e;
+				log.error("getCoachRealtimeData: HttpClientErrorException: {}" + hcee.getResponseBodyAsString());
+			}
+			if (e instanceof ResourceAccessException){
+				try{
+					entity = restTemplate.getForEntity(reqUrl, BeanCoachRetMsg.class);
+					if ((entity.getStatusCode().value() == 200) && (entity.hasBody()))
+						retMsg = entity.getBody();
+					log.info("getCoachRealtimeData try again!");
+				}
+				catch (Exception retryException){
+					log.error("getCoachRealtimeData retry error: {}, {}", e.getClass().getName(), e.getMessage());
+				}
+			}
+			else
+				log.error("getCoachRealtimeData error: {}, {}", e.getClass().getName(), e.getMessage());
+	    }
+
+		return retMsg;
+	}
 
 }

@@ -20,7 +20,7 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 
 public class PhoneDecoder extends MessageToMessageDecoder<DatagramPacket> {
 
-	private byte PROTO_HEAD;
+	private byte PROTO_HEAD = -1;
 	private String PROTO_PHONE = null;
 
 	private Logger log = LoggerFactory.getLogger(this.getClass());
@@ -28,8 +28,8 @@ public class PhoneDecoder extends MessageToMessageDecoder<DatagramPacket> {
 
 	public PhoneDecoder(ApplicationContext appCtx) {
 		try{
-			PROTO_HEAD = Byte.parseByte(appCtx.getEnvironment().getProperty("phone.udp.proto.head"));
-			PROTO_PHONE = appCtx.getEnvironment().getProperty("phone.udp.proto.phone");
+			//PROTO_HEAD = Byte.parseByte(appCtx.getEnvironment().getProperty("phone.udp.proto.head"));
+			//PROTO_PHONE = appCtx.getEnvironment().getProperty("phone.udp.proto.phone");
 		}
 		catch (NumberFormatException e){
 			log.error("PROTO_HEAD parseByte error: {}", e.getMessage());
@@ -38,6 +38,8 @@ public class PhoneDecoder extends MessageToMessageDecoder<DatagramPacket> {
 		finally{
 			if (PROTO_PHONE == null)
 				PROTO_PHONE = "PHON";
+			if (PROTO_HEAD == -1)
+				PROTO_HEAD = 5;
 		}
 		
 	}	
